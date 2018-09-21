@@ -1,0 +1,45 @@
+// Serial Keypress identifier
+// Simonious@gmail.com
+// 9/21/2018
+// Public Domain (The Unlicense)
+// The purpose of this code is to demonstrate capturing the arrow key presses
+// I recommend using putty or really any serial interface other than that provided by the Arduino IDE
+
+void setup(){
+  Serial.begin(115200);                 // set serial data transmission rate
+}
+
+static uint32_t inputTimer;             // timing variable for capturing arrow keypresses
+static bool     ESCflag = 0,            // ESC detected flag
+                bracketFlag = 0;        // [ detected flag
+                
+void loop(){
+  uint32_t Millis = millis();           // store the timer vlaue
+  
+  if(Serial.available()){
+    char in = Serial.read();            // grab an item from the serial input stream
+        
+    Serial.print(Millis-inputTimer);    // elapsed time since the last time we were in this if statement
+    Serial.print(int(in));              // integer value of the keypress
+    Serial.print(" 0x");              
+    Serial.print(in, HEX);              // hex value of the keypress
+    Serial.print(" ");                  
+    Serial.print(in);                   // character value of the keypress
+    
+    if(int(in) == 27) { ESCflag = 1; Serial.print(" EESC"); }             // ESC detected
+    else if(in == '[') {                                                  // left bracket detected
+       if (ESCflag) { bracketFlag = 1; } else { ESCflag = 0; }   
+    }
+    else if( (ESCflag) && (bracketFlag) && ((Millis-inputTimer) < 5)) {   // if these 3 characters entered faster than a human can
+      if (in == 'A') { Serial.print(" up arrow"); }                       // now you can capture arrow key presses
+      if (in == 'B') { Serial.print(" down arrow"); }                     // You may put function calls here
+      if (in == 'C') { Serial.print(" right arrow"); }                    // or here
+      if (in == 'D') { Serial.print(" left arrow"); }                     // or otherwise use this code as you see fit
+
+      ESCflag = 0; bracketFlag = 0;
+      Serial.println("");                                                 // linefeed
+    }
+    Serial.println("");                                                   // linefeed
+    inputTimer = Millis;                                                  // zero timer
+  }
+}
